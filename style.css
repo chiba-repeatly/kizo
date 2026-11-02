@@ -275,3 +275,14 @@ footer {
     font-size: 22px;
   }
 }
+
+.intro {
+  margin: -8px 0 26px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.noscript {
+  padding: 16px 5%;
+  color: #ffe09d;
+  background: #263325;
+}

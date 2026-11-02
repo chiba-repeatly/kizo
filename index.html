@@ -4,11 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#101715" />
-    <title>KIZO — 記録を、成長に変える。</title>
+    <title>KIZO（キゾ）｜筋トレ記録・食事記録・PFC管理アプリ</title>
+    <meta name="description" content="KIZO（キゾ）は、筋トレ記録・食事記録・PFC計算をまとめて管理できるフィットネスWebアプリ。種目別の履歴や自己ベスト、目標に合わせたルールベースの献立・運動候補を確認。記録はブラウザ内に保存できます。" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:site_name" content="KIZO" />
+    <meta property="og:title" content="KIZO（キゾ）｜筋トレ記録・食事記録・PFC管理" />
+    <meta property="og:description" content="記録を、成長に変える。トレーニングと食事を記録し、日々のPFC・カロリーと成長の履歴をひとつに。ブラウザ内保存のフィットネスWebアプリ。" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="KIZO（キゾ）｜筋トレ記録・PFC管理" />
+    <meta name="twitter:description" content="筋トレ・食事を記録し、PFCと成長の履歴を確認。記録を、成長に変える。" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "KIZO（キゾ）",
+        "alternateName": "KIZO",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Web browser",
+        "inLanguage": "ja",
+        "softwareVersion": "1.0.0",
+        "description": "筋トレ記録・食事記録・PFC計算をまとめて管理する、ブラウザ内保存のフィットネスWebアプリ。",
+        "featureList": ["筋トレの記録・履歴・推定1RM", "食事記録・PFC計算", "ルールベースの献立・運動候補", "JSONバックアップ"]
+      }
+    </script>
     <link rel="stylesheet" href="style.css" />
     <script type="module" src="app.js"></script>
   </head>
   <body>
+    <noscript><p class="noscript">KIZOの記録・計算機能にはJavaScriptが必要です。ブラウザ設定で有効にしてください。筋トレと食事の記録は端末内に保存されます。</p></noscript>
     <header>
       <a class="brand" href="#dashboard">KIZO<span>BUILD YOUR BEST.</span></a>
       <nav aria-label="メインナビゲーション">
@@ -22,6 +48,7 @@
         <div>
           <p class="eyebrow">YOUR DAILY PROGRESS</p>
           <h1>記録を、成長に変える。</h1>
+          <p class="intro">筋トレ記録・食事記録・PFC管理を、ひとつに。<br />日々の積み重ねを、あなたの成長につなげるKIZO。</p>
         </div>
         <label>表示・記録日<input type="date" id="date" required /></label>
       </div>
