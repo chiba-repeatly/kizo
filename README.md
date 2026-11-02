@@ -80,4 +80,8 @@ HTML/CSS/JSは相対パスのため、プロジェクト配下のPagesでも動�
 
 検索用タイトル・説明、Open Graph、Twitterカード、日本語指定、静的HTML内の紹介文、WebApplicationのJSON-LD、SVGファビコンを設定しています。記録データを構造化データやメタ情報に含めることはありません。検索順位・リッチリザルトの表示を保証するものではありません。
 
-公開URLがまだ確定していないため、canonical・og:url・絶対URLの共有画像・sitemap.xmlは未設定です。Pagesの公開完了後に、実際のURL（独自ドメインを使用する場合はそのURL）を確認して設定してください。プロジェクトのサブパスも含め、canonicalとog:urlを同じ公開URLに揃え、サイトマップにそのURLを記載します。GitHub Pagesのプロジェクト配下ではリポジトリ内のrobots.txtはドメイン直下のrobots.txtになりません。Search Consoleへの登録とURL検査も公開後に行います。
+公開先URLは **https://chiba-repeatly.github.io/kizo/** に統一しました。canonical・og:url・JSON-LDのurl・sitemap.xmlはこのURLを指定し、SNS共有画像は `assets/social-card.png`（1200×630）を絶対URLで参照します。元デザインは `assets/social-card.svg` です。
+
+これは公開先の設定であり、実際のデプロイ完了を示すものではありません。PRのマージ後、上記GitHub Pages手順で `main` のルートを公開し、公開URL、`sitemap.xml`、`assets/social-card.png` のHTTP応答を確認してください。独自ドメインへ変更する場合は、これらのURLをまとめて変更します。
+
+GitHub Pagesのプロジェクト配下ではリポジトリ内のrobots.txtはドメイン直下のrobots.txtになりません。Search Consoleへの登録、サイトマップ（https://chiba-repeatly.github.io/kizo/sitemap.xml）の送信、URL検査は公開後に行います。

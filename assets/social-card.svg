@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<rect width="1200" height="630" fill="#101715"/>
+<rect x="0" y="0" width="1200" height="8" fill="#9cf4be"/>
+<circle cx="1130" cy="570" r="260" fill="#182b20"/>
+<circle cx="1130" cy="570" r="180" fill="none" stroke="#345440" stroke-width="2"/>
+<g font-family="sans-serif">
+<text x="85" y="138" fill="#9cf4be" font-size="64" font-weight="900" letter-spacing="12">KIZO</text>
+<text x="88" y="180" fill="#9cf4be" font-size="15" letter-spacing="5">BUILD YOUR BEST.</text>
+<text x="80" y="315" fill="#eff8f2" font-size="62" font-weight="700">記録を、成長に変える。</text>
+<text x="85" y="391" fill="#b7cbbd" font-size="28">筋トレ記録・食事記録・PFC管理を、ひとつに。</text>
+<rect x="85" y="460" width="330" height="56" rx="28" fill="#9cf4be"/>
+<text x="113" y="497" fill="#102418" font-size="23" font-weight="700">フィットネスWebアプリ</text>
+<text x="85" y="574" fill="#a7b9ae" font-size="20">chiba-repeatly.github.io/kizo/</text>
+</g>
+</svg>
