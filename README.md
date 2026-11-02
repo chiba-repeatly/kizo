@@ -47,12 +47,14 @@ python3 tests/browser-smoke.py
 
 ### GitHub Pages
 
-1. この変更を `main` にマージします。
-2. リポジトリの **Settings → Pages → Build and deployment** で **Deploy from a branch** を選択します。
-3. ブランチ `main`、フォルダー `/ (root)` を指定して保存します。
-4. Pagesのデプロイ完了後、GitHubが表示する公開URLで記録・再読み込みを確認します。
+`main` へのpushで `.github/workflows/pages.yml` がテストを実行し、公開用ファイルだけをGitHub Pagesへデプロイします。公開URLは **https://chiba-repeatly.github.io/kizo/** です。
 
-HTML/CSS/JSは相対パスのため、プロジェクト配下のPagesでも動作します。自動デプロイ用の秘密鍵や有料APIは不要です。実際の公開設定変更・本番デプロイはこの実装では行っていません。
+1. この変更を `main` にマージします。
+2. GitHubの **Actions → Deploy GitHub Pages** で実行結果を確認します。
+3. 初回のPages有効化で権限エラーになった場合は **Settings → Pages → Build and deployment → Source → GitHub Actions** を選択し、失敗した実行を **Re-run all jobs** で再実行します。
+4. デプロイ完了後、公開URLで記録・再読み込みと、`sitemap.xml`、`assets/social-card.png` の応答を確認します。
+
+ワークフローは標準の `GITHUB_TOKEN` を使用し、有料APIや追加の秘密鍵は不要です。HTML/CSS/JSの参照は相対パスで、プロジェクト配下のPagesに対応しています。公開成果物にはアプリの静的ファイルのみを含め、仕様書・テスト・Gitメタデータは含めません。
 
 ### Food data and calculations
 
@@ -82,6 +84,6 @@ HTML/CSS/JSは相対パスのため、プロジェクト配下のPagesでも動�
 
 公開先URLは **https://chiba-repeatly.github.io/kizo/** に統一しました。canonical・og:url・JSON-LDのurl・sitemap.xmlはこのURLを指定し、SNS共有画像は `assets/social-card.png`（1200×630）を絶対URLで参照します。元デザインは `assets/social-card.svg` です。
 
-これは公開先の設定であり、実際のデプロイ完了を示すものではありません。PRのマージ後、上記GitHub Pages手順で `main` のルートを公開し、公開URL、`sitemap.xml`、`assets/social-card.png` のHTTP応答を確認してください。独自ドメインへ変更する場合は、これらのURLをまとめて変更します。
+これは公開先の設定であり、実際のデプロイ完了を示すものではありません。PRのマージ後、上記GitHub Actionsの実行結果と、公開URL、`sitemap.xml`、`assets/social-card.png` のHTTP応答を確認してください。独自ドメインへ変更する場合は、これらのURLをまとめて変更します。
 
 GitHub Pagesのプロジェクト配下ではリポジトリ内のrobots.txtはドメイン直下のrobots.txtになりません。Search Consoleへの登録、サイトマップ（https://chiba-repeatly.github.io/kizo/sitemap.xml）の送信、URL検査は公開後に行います。
