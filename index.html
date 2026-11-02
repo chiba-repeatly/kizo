@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101715" />
+    <title>KIZO — 記録を、成長に変える。</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="#dashboard">KIZO<span>BUILD YOUR BEST.</span></a>
+      <nav aria-label="メインナビゲーション">
+        <a href="#dashboard">ホーム</a><a href="#training">トレーニング</a
+        ><a href="#nutrition">食事</a><a href="#suggestions">提案</a
+        ><a href="#settings">設定</a>
+      </nav>
+    </header>
+    <main>
+      <div class="heading">
+        <div>
+          <p class="eyebrow">YOUR DAILY PROGRESS</p>
+          <h1>記録を、成長に変える。</h1>
+        </div>
+        <label>表示・記録日<input type="date" id="date" required /></label>
+      </div>
+      <p id="notice" role="status" aria-live="polite"></p>
+      <section id="dashboard">
+        <h2>今日のバランス <small>DAILY BALANCE</small></h2>
+        <div id="metrics" class="grid"></div>
+        <div class="grid two">
+          <article>
+            <h3>エネルギーバランス</h3>
+            <div id="energy"></div>
+            <p class="muted">
+              P・C は 4 kcal/g、F は 9
+              kcal/g。比率は三大栄養素由来のエネルギーで計算。表示は小数第1位に丸め、集計は丸め前の値を使用します。
+            </p>
+          </article>
+          <article>
+            <h3>最新のトレーニング</h3>
+            <div id="latest"></div>
+          </article>
+        </div>
+      </section>
+      <section id="training">
+        <h2>トレーニング <small>TRAINING LOG</small></h2>
+        <div class="grid two">
+          <article>
+            <h3 id="workout-title">トレーニングを記録</h3>
+            <form id="workout-form">
+              <label
+                >種目<input
+                  name="name"
+                  maxlength="120"
+                  required
+                  placeholder="例：ベンチプレス" /></label
+              ><label>部位<select name="group"></select></label>
+              <div class="grid three">
+                <label
+                  >重量 kg<input
+                    name="weight"
+                    type="number"
+                    min="0"
+                    max="1000"
+                    step="0.1"
+                    required /></label
+                ><label
+                  >回数<input
+                    name="reps"
+                    type="number"
+                    min="1"
+                    max="1000"
+                    step="1"
+                    required /></label
+                ><label
+                  >セット<input
+                    name="sets"
+                    type="number"
+                    min="1"
+                    max="100"
+                    step="1"
+                    required
+                /></label>
+              </div>
+              <p class="muted">
+                自重種目は重量0。記録日は上部で選択した日です。
+              </p>
+              <button>記録を保存</button
+              ><button
+                type="button"
+                class="secondary"
+                id="cancel-workout"
+                hidden
+              >
+                編集をキャンセル
+              </button>
+            </form>
+          </article>
+          <article>
+            <h3>種目別の履歴・自己ベスト</h3>
+            <label>種目<select id="history-exercise"></select></label>
+            <div id="history"></div>
+          </article>
+        </div>
+        <article>
+          <h3>選択日の記録</h3>
+          <div id="workout-list"></div>
+        </article>
+        <article>
+          <h3>月間トレーニングカレンダー</h3>
+          <div id="calendar"></div>
+        </article>
+      </section>
+      <section id="nutrition">
+        <h2>食事と栄養 <small>NUTRITION LOG</small></h2>
+        <div class="grid two">
+          <article>
+            <h3>食品を探す</h3>
+            <label
+              >限定カタログを検索<input
+                id="food-search"
+                type="search"
+                placeholder="鶏、卵、バナナ…"
+            /></label>
+            <div id="food-results"></div>
+            <p class="muted">
+              USDA FoodData Central / SR Legacy
+              の限定シード5品。米国の一般食品の参考値で、商品・品種・調理条件により異なります。重量は表示した状態の可食部です。
+            </p>
+            <a
+              href="https://fdc.nal.usda.gov/download-datasets/"
+              target="_blank"
+              rel="noopener"
+              >出典・データダウンロード（USDA・パブリックドメイン）</a
+            >
+          </article>
+          <article>
+            <h3 id="meal-title">食事を記録 / 手入力</h3>
+            <form id="meal-form">
+              <label
+                >食品名<input name="name" maxlength="120" required
+              /></label>
+              <div class="grid two">
+                <label>食事区分<select name="slot"></select></label
+                ><label
+                  >食べた量 g<input
+                    name="grams"
+                    type="number"
+                    min="0.1"
+                    max="10000"
+                    step="0.1"
+                    value="100"
+                    required
+                /></label>
+              </div>
+              <p>100 g 当たりの栄養値</p>
+              <div class="grid two">
+                <label
+                  >kcal<input
+                    name="kcal"
+                    type="number"
+                    min="0"
+                    max="1000"
+                    step="0.01"
+                    required /></label
+                ><label
+                  >たんぱく質 g<input
+                    name="p"
+                    type="number"
+                    min="0"
+                    max="1000"
+                    step="0.01"
+                    required /></label
+                ><label
+                  >脂質 g<input
+                    name="f"
+                    type="number"
+                    min="0"
+                    max="1000"
+                    step="0.01"
+                    required /></label
+                ><label
+                  >炭水化物 g<input
+                    name="c"
+                    type="number"
+                    min="0"
+                    max="1000"
+                    step="0.01"
+                    required
+                /></label>
+              </div>
+              <label
+                >出典 / 商品ラベル<input
+                  name="source"
+                  maxlength="300"
+                  required
+                  placeholder="商品ラベル等（数値編集時は出典も更新）" /></label
+              ><button>記録を保存</button
+              ><button type="button" class="secondary" id="cancel-meal" hidden>
+                編集をキャンセル
+              </button>
+            </form>
+          </article>
+        </div>
+        <article>
+          <h3>選択日の食事</h3>
+          <div id="meal-list"></div>
+        </article>
+      </section>
+      <section id="suggestions">
+        <h2>次の一歩 <small>RULE-BASED GUIDANCE</small></h2>
+        <p>
+          目標と記録から計算するルールベースの候補です。AI・医療アドバイスではありません。記録の不足から栄養欠乏を判定しません。
+        </p>
+        <div class="grid two">
+          <article>
+            <h3>献立の候補</h3>
+            <form id="meal-options">
+              <label
+                ><input name="vegetarian" type="checkbox" />
+                肉なし（卵を含む）</label
+              ><label
+                >調理時間の上限<select name="minutes">
+                  <option value="30">30分</option>
+                  <option value="10">10分</option>
+                  <option value="5">5分</option>
+                </select></label
+              ><label
+                >予算の上限<select name="budget">
+                  <option value="600">600円</option>
+                  <option value="300">300円</option>
+                  <option value="150">150円</option>
+                </select></label
+              >
+            </form>
+            <div id="meal-suggestions"></div>
+          </article>
+          <article>
+            <h3>トレーニングの候補</h3>
+            <form id="training-options">
+              <label
+                >目標<select name="goal">
+                  <option>筋肥大</option>
+                  <option>筋力向上</option>
+                  <option>健康維持</option>
+                </select></label
+              ><label
+                >経験<select name="experience">
+                  <option>初心者</option>
+                  <option>経験者</option>
+                </select></label
+              ><label
+                >設備<select name="equipment">
+                  <option>自重</option>
+                  <option>ジム</option>
+                </select></label
+              ><label
+                >疲労<select name="fatigue">
+                  <option>普通</option>
+                  <option>高い</option>
+                </select></label
+              ><label
+                ><input name="pain" type="checkbox" />
+                痛み・体調不良がある</label
+              >
+            </form>
+            <p id="training-suggestion"></p>
+          </article>
+        </div>
+      </section>
+      <section id="settings">
+        <h2>目標とデータ <small>SETTINGS & PRIVACY</small></h2>
+        <div class="grid two">
+          <article>
+            <h3>1日の目標</h3>
+            <form id="goal-form">
+              <div class="grid two">
+                <label
+                  >エネルギー kcal<input
+                    name="kcal"
+                    type="number"
+                    min="1"
+                    max="100000"
+                    step="0.1"
+                    required /></label
+                ><label
+                  >P g<input
+                    name="p"
+                    type="number"
+                    min="0.1"
+                    max="100000"
+                    step="0.1"
+                    required /></label
+                ><label
+                  >F g<input
+                    name="f"
+                    type="number"
+                    min="0.1"
+                    max="100000"
+                    step="0.1"
+                    required /></label
+                ><label
+                  >C g<input
+                    name="c"
+                    type="number"
+                    min="0.1"
+                    max="100000"
+                    step="0.1"
+                    required
+                /></label>
+              </div>
+              <button>目標を保存</button>
+            </form>
+            <p class="muted">
+              カロリー目標とPFC目標は独立した入力です。食品の表示カロリーとPFC換算値には差が生じます。
+            </p>
+          </article>
+          <article>
+            <h3>あなたの記録は、このブラウザに。</h3>
+            <p>
+              データはこの端末の localStorage
+              にのみ保存します。ブラウザのデータ削除・端末変更で失われます。定期的にJSONを保存してください。アプリから記録を外部送信しません。
+            </p>
+            <button id="export">JSONを書き出す</button
+            ><label
+              >JSONを読み込む（既存データを置換）<input
+                id="import"
+                type="file"
+                accept="application/json,.json" /></label
+            ><button id="reset" class="danger">全データを削除</button>
+          </article>
+        </div>
+      </section>
+      <footer>
+        KIZO V1.0 · AIチャット・アカウント・クラウド同期は V2.0 以降の予定です。
+      </footer>
+    </main>
+  </body>
+</html>
