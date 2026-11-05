@@ -1,3 +1,4 @@
+import { completedRows } from "./training-model.js";
 // Titles celebrate recorded habits, never diagnose strength or health.
 export const titleCategories = [
   "継続",
@@ -10,7 +11,7 @@ export const titleCategories = [
   "バックアップ",
 ];
 export function collectTitles(state, date) {
-  const workouts = state.workouts.filter((w) => w.date <= date),
+  const workouts = completedRows(state.workouts).filter((w) => w.date <= date),
     meals = state.meals.filter((m) => m.date <= date);
   const days = [...new Set(workouts.map((w) => w.date))].sort();
   const foodDays = new Set(meals.map((m) => m.date));
@@ -32,7 +33,32 @@ export function collectTitles(state, date) {
   series(
     "days",
     "継続",
-    ["👟","🤝","🔥","⭐","⚔️","🚀","🦸","🪄","💚","🗿","🏆","🧳","🍂","💯","🛡️","🧙","🧭","🐾","🌍","🌟","📚","🔮","🌌","👑"],
+    [
+      "👟",
+      "🤝",
+      "🔥",
+      "⭐",
+      "⚔️",
+      "🚀",
+      "🦸",
+      "🪄",
+      "💚",
+      "🗿",
+      "🏆",
+      "🧳",
+      "🍂",
+      "💯",
+      "🛡️",
+      "🧙",
+      "🧭",
+      "🐾",
+      "🌍",
+      "🌟",
+      "📚",
+      "🔮",
+      "🌌",
+      "👑",
+    ],
     [
       1, 2, 3, 5, 7, 10, 14, 21, 30, 45, 60, 75, 90, 100, 120, 150, 180, 200,
       250, 300, 365, 500, 730, 1000,
