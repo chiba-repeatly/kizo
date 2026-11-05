@@ -14,3 +14,29 @@ jobs:
           node-version: '24'
       - run: npm test
       - run: node --check app.js
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      KIZO_ARTIFACTS: ${{ runner.temp }}/kizo-artifacts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -r tests/requirements.txt
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Exercise application workflows
+        run: |
+          python3 -m http.server 8000 --bind 127.0.0.1 > "$RUNNER_TEMP/kizo-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          python3 tests/browser-smoke.py
+          python3 tests/browser-titles.py
+          python3 tests/browser-training.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-screenshots
+          path: ${{ env.KIZO_ARTIFACTS }}
+          if-no-files-found: ignore
