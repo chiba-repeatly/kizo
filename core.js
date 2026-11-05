@@ -1,3 +1,4 @@
+import { completedRows, validTrainingState } from "./training-model.js";
 export const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -39,6 +40,11 @@ const num = (n, max = 100000) =>
   typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= max;
 export function validate(s) {
   try {
+    if (s?.version === 2)
+      return (
+        validTrainingState(s) &&
+        validate({ ...s, version: 1, workouts: completedRows(s.workouts) })
+      );
     if (
       !s ||
       s.version !== 1 ||
@@ -227,7 +233,7 @@ export function workoutSuggestion(
     return "痛み・体調不良があるため運動は休止。症状が続く場合は医療専門家に相談してください。";
   if (fatigue === "高い")
     return "疲労が高いため休養、または無理のない軽い散歩を候補にしてください。";
-  const recent = workouts.filter((w) => {
+  const recent = completedRows(workouts).filter((w) => {
     const days =
       (new Date(`${date}T12:00:00Z`) - new Date(`${w.date}T12:00:00Z`)) /
       86400000;
@@ -268,6 +274,7 @@ export function weightComparison(kg) {
   return { ...ref, count: Math.round((kg / ref.kg) * 10) / 10 || 0.1 };
 }
 export function trainingAdventure(workouts, date) {
+  workouts = completedRows(workouts);
   const recorded = workouts.filter((w) => w.date <= date);
   const days = new Set(recorded.map((w) => w.date)).size;
   const levels = [

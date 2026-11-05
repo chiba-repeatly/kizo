@@ -1,9 +1,10 @@
+from browser_support import launch_browser, ARTIFACTS
 """Run after npm start; uses the same Playwright/Chromium setup as browser-smoke.py."""
 from playwright.sync_api import sync_playwright, expect
 from pathlib import Path
 import json
 with sync_playwright() as p:
- b=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox'])
+ b=launch_browser(p)
  page=b.new_page(viewport={'width':1440,'height':1200},locale='ja-JP',timezone_id='Asia/Tokyo')
  errors=[]
  page.on('pageerror',lambda e:errors.append(str(e)))
@@ -33,11 +34,10 @@ with sync_playwright() as p:
  page.locator('#title-category').select_option('')
  # Preview capture shows the live collection with sample records.
  page.locator('.play-label').evaluate("e=>e.textContent='サンプルデータ'")
- Path('/workspace/artifacts').mkdir(exist_ok=True)
- page.locator('.title-collection').screenshot(path='/workspace/artifacts/kizo-titles-desktop.png')
+ page.locator('.title-collection').screenshot(path=str(ARTIFACTS / 'kizo-titles-desktop.png'))
  page.set_viewport_size({'width':390,'height':1100})
  assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
- page.locator('.title-collection').screenshot(path='/workspace/artifacts/kizo-titles-mobile.png')
+ page.locator('.title-collection').screenshot(path=str(ARTIFACTS / 'kizo-titles-mobile.png'))
  with page.expect_download() as download:
   page.locator('#export').click()
  data=json.loads(Path(download.value.path()).read_text())

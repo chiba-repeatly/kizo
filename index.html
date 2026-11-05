@@ -135,7 +135,13 @@
                 </select></label
               >
             </div>
-            <div id="title-grid" class="title-grid" tabindex="0" role="region" aria-label="称号の一覧"></div>
+            <div
+              id="title-grid"
+              class="title-grid"
+              tabindex="0"
+              role="region"
+              aria-label="称号の一覧"
+            ></div>
             <p class="muted">
               称号は記録内容から再計算します。編集・削除・JSON置換で条件を満たさなくなると未獲得に戻り、選択中なら自動で別の称号を表示します。
             </p>
@@ -166,74 +172,187 @@
           </article>
         </div>
       </section>
-      <section id="training">
-        <h2>トレーニング <small>TRAINING LOG</small></h2>
-        <div class="grid two">
-          <article>
-            <h3 id="workout-title">トレーニングを記録</h3>
-            <form id="workout-form">
-              <label
-                >種目<input
-                  name="name"
-                  maxlength="120"
-                  required
-                  placeholder="例：ベンチプレス" /></label
-              ><label>部位<select name="group"></select></label>
-              <div class="grid three">
-                <label
-                  >重量 kg<input
-                    name="weight"
-                    type="number"
-                    min="0"
-                    max="1000"
-                    step="0.1"
-                    required /></label
-                ><label
-                  >回数<input
-                    name="reps"
-                    type="number"
-                    min="1"
-                    max="1000"
-                    step="1"
-                    required /></label
-                ><label
-                  >セット<input
-                    name="sets"
-                    type="number"
-                    min="1"
-                    max="100"
-                    step="1"
-                    required
-                /></label>
-              </div>
-              <p class="muted">
-                自重種目は重量0。記録日は上部で選択した日です。
-              </p>
-              <button>記録を保存</button
-              ><button
-                type="button"
-                class="secondary"
-                id="cancel-workout"
-                hidden
-              >
-                編集をキャンセル
-              </button>
-            </form>
-          </article>
-          <article>
-            <h3>種目別の履歴・自己ベスト</h3>
-            <label>種目<select id="history-exercise"></select></label>
-            <div id="history"></div>
-          </article>
+      <section id="training" aria-labelledby="training-heading">
+        <div class="training-heading">
+          <div>
+            <p class="eyebrow">YOUR SESSION</p>
+            <h2 id="training-heading">今日のトレーニング</h2>
+          </div>
+          <label>記録日<input id="training-date" type="date" required /></label>
         </div>
-        <article>
-          <h3>選択日の記録</h3>
-          <div id="workout-list"></div>
+        <p class="muted">
+          まず種目を追加し、各セットの「完了」を押してください。未完了の予定は集計・称号に含めません。
+        </p>
+        <div id="training-feedback" role="status" aria-live="polite"></div>
+        <div class="session-toolbar">
+          <span id="session-status"></span
+          ><a class="timer-chip" href="#timer-panel"
+            >休憩 <span id="timer-compact">01:30</span> ↗</a
+          >
+        </div>
+        <div class="training-layout">
+          <div>
+            <div id="workout-list"></div>
+            <article>
+              <h3>種目を追加</h3>
+              <form id="workout-form">
+                <label
+                  >種目<input
+                    name="name"
+                    list="exercise-names"
+                    maxlength="120"
+                    required
+                    placeholder="例：ベンチプレス"
+                    autocomplete="off" /></label
+                ><datalist id="exercise-names"></datalist
+                ><label>部位<select name="group"></select></label>
+                <div id="previous-preview" class="previous-preview"></div>
+                <button
+                  id="copy-previous"
+                  type="button"
+                  class="secondary"
+                  disabled
+                >
+                  前回をコピーして追加
+                </button>
+                <details>
+                  <summary>重量・回数をまとめて入力</summary>
+                  <div class="grid three">
+                    <label
+                      >重量 kg<input
+                        name="weight"
+                        type="number"
+                        inputmode="decimal"
+                        min="0"
+                        max="1000"
+                        step="any"
+                        value="0"
+                        required /></label
+                    ><label
+                      >回数<input
+                        name="reps"
+                        type="number"
+                        inputmode="numeric"
+                        min="1"
+                        max="1000"
+                        step="1"
+                        value="10"
+                        required /></label
+                    ><label
+                      >セット<input
+                        name="sets"
+                        type="number"
+                        inputmode="numeric"
+                        min="1"
+                        max="100"
+                        step="1"
+                        value="1"
+                        required
+                    /></label>
+                  </div>
+                </details>
+                <button>今日に追加（未完了）</button>
+                <p class="muted">
+                  自重は0kg。種目名は全角英数・前後空白・英字大小文字を統一して照合し、同義語は統合しません。
+                </p>
+              </form>
+            </article>
+          </div>
+          <aside>
+            <article id="timer-panel">
+              <h3>休憩タイマー</h3>
+              <output id="timer-display" role="timer" aria-live="off"
+                >01:30</output
+              >
+              <div class="timer-presets">
+                <button type="button" class="secondary" data-seconds="60">
+                  60秒</button
+                ><button type="button" class="secondary" data-seconds="90">
+                  90秒</button
+                ><button type="button" class="secondary" data-seconds="120">
+                  120秒
+                </button>
+              </div>
+              <label
+                >任意の時間（秒）<input
+                  id="timer-duration"
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  max="3600"
+                  step="1"
+                  value="90"
+              /></label>
+              <div>
+                <button type="button" id="timer-start">開始</button
+                ><button type="button" id="timer-pause" class="secondary">
+                  一時停止</button
+                ><button type="button" id="timer-resume" class="secondary">
+                  再開</button
+                ><button type="button" id="timer-reset" class="secondary">
+                  リセット
+                </button>
+              </div>
+              <label
+                ><input id="timer-auto" type="checkbox" />
+                セット完了後に自動開始</label
+              ><label
+                ><input id="timer-sound" type="checkbox" />
+                終了音を使う（任意）</label
+              >
+              <p id="timer-message" role="status"></p>
+              <p class="muted">
+                時間の変更は次回の開始から反映します。画面復帰時は実際の経過時刻から再計算します。バックグラウンドでの音や通知は保証できません。通知権限は要求しません。
+              </p>
+            </article>
+            <article>
+              <h3>いつものメニュー</h3>
+              <div id="template-list"></div>
+              <button id="new-template" type="button" class="secondary">
+                新規テンプレート</button
+              ><button id="template-today" type="button" class="secondary">
+                今日の種目から作成
+              </button>
+              <form id="template-form" hidden>
+                <h4 id="template-editor-title">テンプレート作成</h4>
+                <label
+                  >メニュー名<input
+                    id="template-name"
+                    maxlength="120"
+                    required
+                    placeholder="胸の日、全身など"
+                /></label>
+                <div id="template-exercises"></div>
+                <button id="template-add" type="button" class="secondary">
+                  種目を追加</button
+                ><button>テンプレート保存</button
+                ><button id="template-cancel" type="button" class="secondary">
+                  キャンセル
+                </button>
+              </form>
+            </article>
+          </aside>
+        </div>
+        <button id="finish-session" type="button">
+          今日のトレーニングを振り返る
+        </button>
+        <article
+          id="session-summary"
+          hidden
+          aria-labelledby="session-summary-heading"
+        >
+          <h3 id="session-summary-heading">今日も、おつかれさま。</h3>
+          <div id="session-result"></div>
         </article>
         <article>
-          <h3>月間トレーニングカレンダー</h3>
-          <div id="calendar"></div>
+          <h3>種目別の履歴・成長</h3>
+          <label>種目<select id="history-exercise"></select></label>
+          <div id="history"></div>
         </article>
+        <details class="training-calendar">
+          <summary>月間トレーニングカレンダー</summary>
+          <article><div id="calendar"></div></article>
+        </details>
       </section>
       <section id="nutrition">
         <h2>食事と栄養 <small>NUTRITION LOG</small></h2>
@@ -445,7 +564,9 @@
               データはこの端末の localStorage
               にのみ保存します。ブラウザのデータ削除・端末変更で失われます。定期的にJSONを保存してください。アプリから記録を外部送信しません。
             </p>
-            <button id="export">JSONを書き出す</button
+            <button id="legacy-export" type="button" class="secondary" hidden>
+              移行前のデータを書き出す</button
+            ><button id="export">JSONを書き出す</button
             ><label
               >JSONを読み込む（既存データを置換）<input
                 id="import"

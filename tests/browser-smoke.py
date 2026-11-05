@@ -1,10 +1,11 @@
+from browser_support import launch_browser, ARTIFACTS
 """Run after npm start: python3 tests/browser-smoke.py (requires Playwright + Chromium)."""
 from playwright.sync_api import sync_playwright, expect
 import json
 from pathlib import Path
 
 with sync_playwright() as p:
-    browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=True, args=['--no-sandbox'])
+    browser = launch_browser(p)
     page = browser.new_page(viewport={"width":390,"height":844})
     errors=[]
     page.on('pageerror', lambda e: errors.append(str(e)))
@@ -14,21 +15,25 @@ with sync_playwright() as p:
     page.locator('#date').dispatch_event('change')
     def workout(weight):
         f=page.locator('#workout-form')
+        f.locator('details').evaluate('(el)=>el.open=true')
         f.locator('[name=name]').fill('ベンチプレス')
         f.locator('[name=weight]').fill(str(weight))
         f.locator('[name=reps]').fill('10')
         f.locator('[name=sets]').fill('3')
-        f.locator('button').first.click()
+        f.locator('button').last.click()
+        expect(page.locator('#adventure')).to_contain_text('0 kg')
+        for i in range(3): page.locator('.set-complete').nth(i).click()
     workout(60)
     expect(page.locator('#adventure')).to_contain_text('1,800 kg')
     expect(page.locator('#adventure')).to_contain_text('小型車 約1.8台分')
     expect(page.locator('#adventure')).to_contain_text('はじめの一歩')
-    expect(page.locator('#workout-list')).to_contain_text('イヌ 約3匹分')
-    assert '60 kg' in page.locator('#workout-list').inner_text()
-    page.locator('[data-action=edit-workout]').click()
-    page.locator('#workout-form [name=weight]').fill('65')
-    page.locator('#workout-form button').first.click()
-    assert '65 kg' in page.locator('#workout-list').inner_text()
+    expect(page.locator('#session-status')).to_contain_text('3セット完了')
+    expect(page.locator('.set-row [name=weight]').first).to_have_value('60')
+    for i in range(3):
+        field=page.locator('.set-row [name=weight]').nth(i)
+        field.fill('65')
+        field.dispatch_event('change')
+    expect(page.locator('.set-row [name=weight]').first).to_have_value('65')
     expect(page.locator('#adventure')).to_contain_text('1,950 kg')
     assert '推定1RM' in page.locator('#history').inner_text()
     page.locator('#food-search').fill('白米')
@@ -39,7 +44,7 @@ with sync_playwright() as p:
     page.reload()
     page.locator('#date').fill('2026-11-02')
     page.locator('#date').dispatch_event('change')
-    assert '65 kg' in page.locator('#workout-list').inner_text()
+    expect(page.locator('.set-row [name=weight]').first).to_have_value('65')
     expect(page.locator('#adventure')).to_contain_text('1,950 kg')
     assert '195 kcal' in page.locator('#meal-list').inner_text()
     page.locator('[data-action=edit-meal]').click()
@@ -55,9 +60,9 @@ with sync_playwright() as p:
     backup=Path(info.value.path()).read_text()
     assert len(json.loads(backup)['meals'])==1
     page.locator('[data-action=delete-meal]').click()
-    page.locator('[data-action=delete-workout]').click()
+    page.locator('[data-training-action=delete-workout]').click()
     assert 'まだありません' in page.locator('#meal-list').inner_text()
-    assert 'まだありません' in page.locator('#workout-list').inner_text()
+    expect(page.locator('#workout-list')).to_contain_text('今日の最初の1セット')
     expect(page.locator('#adventure')).to_contain_text('思い出の保管係')
     page.locator('#import').set_input_files({'name':'backup.json','mimeType':'application/json','buffer':backup.encode()})
     expect(page.locator('#meal-list')).to_contain_text('260 kcal')
@@ -71,23 +76,24 @@ with sync_playwright() as p:
     expect(page.locator('#meal-list')).to_contain_text('<img src=x onerror=alert(1)>')
     assert page.locator('#meal-list img').count()==0
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
-    page.screenshot(path='/tmp/kizo-mobile.png',full_page=True)
+    page.screenshot(path=str(ARTIFACTS / 'kizo-smoke-mobile.png'),full_page=True)
     page.set_viewport_size({'width':1440,'height':1000})
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
-    page.screenshot(path='/tmp/kizo-desktop.png',full_page=True)
+    page.screenshot(path=str(ARTIFACTS / 'kizo-smoke-desktop.png'),full_page=True)
     page.locator('#goal-form [name=kcal]').fill('2200')
     page.locator('#goal-form button').click()
     assert '2200' in page.locator('#metrics').inner_text()
-    page.locator('[data-action=edit-workout]').click()
+    page.locator('.exercise-edit > summary').click()
+    page.locator('[data-edit-workout] [name=date]').fill('2026-11-03')
+    page.locator('[data-edit-workout] button').click()
     page.locator('#date').fill('2026-11-03')
     page.locator('#date').dispatch_event('change')
-    page.locator('#workout-form button').first.click()
-    assert '65 kg' in page.locator('#workout-list').inner_text()
+    expect(page.locator('.set-row [name=weight]').first).to_have_value('65')
     expect(page.locator('#adventure')).to_contain_text('1,950 kg')
     assert page.locator('[data-day="2026-11-03"]').get_attribute('class').startswith('logged')
     page.locator('#reset').click()
-    assert json.loads(page.evaluate("localStorage.getItem('kizo.v1')"))['meals']==[]
-    page.evaluate("localStorage.setItem('kizo.v1', 'corrupt')")
+    assert json.loads(page.evaluate("localStorage.getItem('kizo.v2')"))['meals']==[]
+    page.evaluate("localStorage.setItem('kizo.v2', 'corrupt')")
     page.reload()
     assert '保存を停止' in page.locator('#notice').inner_text()
     page.locator('#reset').click()
