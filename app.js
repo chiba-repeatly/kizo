@@ -1,22 +1,24 @@
+import { migrateState, completedRows } from "./training-model.js";
+import { initTraining } from "./training-ui.js";
+import { loadState, storageKeys } from "./storage.js";
 import { collectTitles, featuredTitle, titleCategories } from "./titles.js";
 import {
   today,
-  initial,
+  initial as legacyInitial,
   round,
   totals,
   energy,
-  estimate,
   validate,
-  groups,
   slots,
   foods,
   mealSuggestions,
   workoutSuggestion,
-  weightComparison,
   trainingAdventure,
 } from "./core.js";
 const $ = (s) => document.querySelector(s),
-  key = "kizo.v1";
+  key = storageKeys.current;
+const initial = () => migrateState(legacyInitial());
+let trainingUI;
 const escape = (s) =>
   String(s).replace(
     /[&<>"']/g,
@@ -29,23 +31,40 @@ const notify = (s) => {
   $("#notice").textContent = s;
 };
 let state = initial(),
-  editingWorkout = null,
   editingMeal = null,
   storageBlocked = false;
 try {
-  const saved = localStorage.getItem(key);
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    if (!validate(parsed)) throw Error();
-    state = parsed;
-  }
-} catch {
+  const loaded = loadState(localStorage);
+  state = loaded.state;
+  if (loaded.migrated)
+    notify("セット別記録へ移行しました。移行前のデータは保護されています。");
+  $("#legacy-export").hidden = !(
+    localStorage.getItem(storageKeys.backup) ||
+    localStorage.getItem(storageKeys.legacy)
+  );
+} catch (error) {
   storageBlocked = true;
   notify(
-    "保存データを読み込めません。元データを保護するため保存を停止しています。バックアップを確認し、JSONを読み込むか全データを削除してください。",
+    error?.name === "QuotaExceededError"
+      ? "保存容量不足で移行を完了できず、保存を停止しています。旧データは保持しています。設定の「移行前のデータを書き出す」で退避してください。"
+      : "保存データを読み込めないため保存を停止しています。元データは変更していません。設定から移行前のデータを書き出すか、手元のJSONバックアップを確認してください。",
   );
 }
+try {
+  $("#legacy-export").hidden = !(
+    localStorage.getItem(storageKeys.backup) ||
+    localStorage.getItem(storageKeys.legacy)
+  );
+} catch {
+  /* Keep recovery hidden only if storage itself is inaccessible. */
+}
 function save(next) {
+  if (!validate(next)) {
+    notify(
+      "保存できません。入力値・セット数・テンプレートの重複などを確認してください。",
+    );
+    return false;
+  }
   try {
     localStorage.setItem(key, JSON.stringify(next));
     state = next;
@@ -66,7 +85,6 @@ function commit(next) {
 }
 $("#date").value = today();
 const options = (a) => a.map((x) => `<option>${escape(x)}</option>`).join("");
-$("#workout-form [name=group]").innerHTML = options(groups);
 $("#meal-form [name=slot]").innerHTML = options(slots);
 const values = (f) => Object.fromEntries(new FormData(f));
 const fill = (f, data) => {
@@ -109,20 +127,14 @@ function render() {
       )
       .join("")}</div>`;
   const latest = [...state.workouts]
-    .filter((w) => w.date <= date)
+    .filter((w) => w.date <= date && w.sets.some((s) => s.completed))
     .sort((a, b) => b.date.localeCompare(a.date))[0];
   $("#latest").innerHTML = latest
-    ? `<p>${escape(latest.date)} · ${escape(latest.group)}</p><h3>${escape(latest.name)}</h3><p>${latest.weight} kg × ${latest.reps}回 × ${latest.sets}セット</p>`
-    : '<p class="muted">この日以前の記録はありません。最初のトレーニングを記録しましょう。</p>';
-  $("#workout-list").innerHTML =
-    state.workouts
-      .filter((w) => w.date === date)
-      .map(
-        (w) =>
-          `<div class="row"><strong>${escape(w.name)} · ${escape(w.group)}</strong>${w.weight} kg × ${w.reps}回 × ${w.sets}セット <p class="weight-fun">${weightComparison(w.weight) ? `${weightComparison(w.weight).emoji} 1回の入力重量は ${ratioText(weightComparison(w.weight))}（目安）` : "🌱 自重トレーニング。自分の体で、コツコツ。"}</p><div>${buttons("workout", w.id)}</div></div>`,
-      )
-      .join("") ||
-    '<p class="muted">この日のトレーニングはまだありません。</p>';
+    ? `<p>${escape(latest.date)} · ${escape(latest.group)}</p><h3>${escape(latest.name)}</h3><p>${latest.sets
+        .filter((s) => s.completed)
+        .map((s) => `${s.weight}kg × ${s.reps}回`)
+        .join(" / ")}</p>`
+    : '<p class="muted">完了したトレーニングはまだありません。</p>';
   $("#meal-list").innerHTML =
     state.meals
       .filter((m) => m.date === date)
@@ -131,13 +143,7 @@ function render() {
           `<div class="row"><strong>${escape(m.slot)} · ${escape(m.name)} ${m.grams} g</strong><p>${nutrition(totals([m], date))}</p><small>出典：${escape(m.source)}</small><div>${buttons("meal", m.id)}</div></div>`,
       )
       .join("") || '<p class="muted">この日の食事はまだありません。</p>';
-  const prev = $("#history-exercise").value;
-  $("#history-exercise").innerHTML = options([
-    ...new Set(state.workouts.map((w) => w.name)),
-  ]);
-  if ([...$("#history-exercise").options].some((o) => o.value === prev))
-    $("#history-exercise").value = prev;
-  renderHistory();
+  trainingUI?.render();
   renderCalendar();
   renderSuggestions();
   fill($("#goal-form"), g);
@@ -182,33 +188,6 @@ $("#title-grid").addEventListener("click", (e) => {
 function buttons(kind, id) {
   return `<button type="button" class="secondary" data-action="edit-${kind}" data-id="${escape(id)}">編集</button><button type="button" class="secondary" data-action="delete-${kind}" data-id="${escape(id)}">削除</button>`;
 }
-function renderHistory() {
-  const rows = state.workouts
-    .filter((w) => w.name === $("#history-exercise").value)
-    .sort((a, b) => a.date.localeCompare(b.date));
-  if (!rows.length) {
-    $("#history").innerHTML =
-      '<p class="muted">記録すると自己ベストと推移が表示されます。</p>';
-    return;
-  }
-  const max = Math.max(...rows.map((w) => w.weight)),
-    pr = Math.max(...rows.map((w) => estimate(w.weight, w.reps)));
-  const pts = rows
-    .map(
-      (w, i) =>
-        `${20 + (rows.length === 1 ? 0 : (i / (rows.length - 1)) * 360)},${110 - (max ? (w.weight / max) * 90 : 0)}`,
-    )
-    .join(" ");
-  $("#history").innerHTML =
-    `<p>最高重量 ${max} kg · 推定1RM ${round(pr)} kg</p><p class="muted">Epley式：重量 × (1 + 回数 ÷ 30)。自重の推定値は0。高回数では誤差が大きく、実際の最大挙上を保証しません。</p><svg viewBox="0 0 400 130" role="img" aria-label="重量の推移。詳細は以下の履歴"><polyline fill="none" stroke="#9cf4be" stroke-width="3" points="${pts}"/>${rows.map((w, i) => `<circle cx="${20 + (rows.length === 1 ? 0 : (i / (rows.length - 1)) * 360)}" cy="${110 - (max ? (w.weight / max) * 90 : 0)}" r="4" fill="#9cf4be"/>`).join("")}</svg><p class="muted">左から記録日順 / 縦軸：重量 0〜${max} kg</p>${rows
-      .slice()
-      .reverse()
-      .map(
-        (w) =>
-          `<div class="row">${escape(w.date)} · ${w.weight} kg × ${w.reps}回 × ${w.sets}セット</div>`,
-      )
-      .join("")}`;
-}
 function renderCalendar() {
   const date = $("#date").value,
     [y, m] = date.split("-").map(Number);
@@ -219,7 +198,9 @@ function renderCalendar() {
       { length: count },
       (_, i) => {
         const day = `${y}-${String(m).padStart(2, "0")}-${String(i + 1).padStart(2, "0")}`;
-        const logged = state.workouts.some((w) => w.date === day);
+        const logged = completedRows(state.workouts).some(
+          (w) => w.date === day,
+        );
         return `<button type="button" data-day="${day}" aria-label="${day}${logged ? " 記録あり" : ""}" class="${logged ? "logged " : ""}${day === date ? "selected" : ""}">${i + 1}</button>`;
       },
     ).join("")}</div>`;
@@ -253,39 +234,12 @@ function renderSuggestions() {
   );
 }
 function clearEdit(kind) {
-  const f = $(`#${kind}-form`);
+  const f = $("#meal-form");
   f.reset();
-  if (kind === "workout") editingWorkout = null;
-  else editingMeal = null;
-  $(`#cancel-${kind}`).hidden = true;
-  $(`#${kind === "workout" ? "workout" : "meal"}-title`).textContent =
-    kind === "workout" ? "トレーニングを記録" : "食事を記録 / 手入力";
+  editingMeal = null;
+  $("#cancel-meal").hidden = true;
+  $("#meal-title").textContent = "食事を記録 / 手入力";
 }
-$("#workout-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const d = values(e.target);
-  const record = {
-    ...d,
-    id: editingWorkout || crypto.randomUUID(),
-    date: $("#date").value,
-    weight: +d.weight,
-    reps: +d.reps,
-    sets: +d.sets,
-  };
-  const next = {
-    ...state,
-    workouts: [...state.workouts.filter((w) => w.id !== record.id), record],
-  };
-  if (!validate(next)) {
-    notify("トレーニングの入力値を確認してください。");
-    return;
-  }
-  if (commit(next)) {
-    clearEdit("workout");
-    render();
-    notify("トレーニングを保存しました。");
-  }
-});
 $("#meal-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const d = values(e.target);
@@ -334,7 +288,7 @@ document.addEventListener("click", (e) => {
     render();
     return;
   }
-  if (!b.dataset.action) return;
+  if (!b.dataset.action || !b.dataset.action.endsWith("-meal")) return;
   const [action, kind] = b.dataset.action.split("-"),
     field = kind === "workout" ? "workouts" : "meals",
     record = state[field].find((x) => x.id === b.dataset.id);
@@ -354,14 +308,13 @@ document.addEventListener("click", (e) => {
   } else {
     fill($(`#${kind}-form`), record);
     $("#date").value = record.date;
-    if (kind === "workout") editingWorkout = record.id;
-    else editingMeal = record.id;
+    editingMeal = record.id;
     $(`#cancel-${kind}`).hidden = false;
     $(`#${kind}-title`).textContent = "記録を編集中";
     $(`#${kind}-form input`).focus();
   }
 });
-for (const kind of ["workout", "meal"])
+for (const kind of ["meal"])
   $(`#cancel-${kind}`).onclick = () => clearEdit(kind);
 $("#date").addEventListener("change", () => {
   if (!$("#date").value || !/^\d{4}-\d{2}-\d{2}$/.test($("#date").value)) {
@@ -370,7 +323,6 @@ $("#date").addEventListener("change", () => {
   }
   render();
 });
-$("#history-exercise").onchange = renderHistory;
 $("#meal-options").onchange = renderSuggestions;
 $("#training-options").onchange = renderSuggestions;
 function search() {
@@ -403,8 +355,11 @@ $("#export").onclick = () => {
     ...state,
     exportCount: Math.min(100000, (state.exportCount || 0) + 1),
   };
-  if (!commit(next)) return;
-  render();
+  if (commit(next)) render();
+  else
+    notify(
+      "保存済みデータのJSONを書き出します。書き出し回数は保存できませんでした。",
+    );
   const url = URL.createObjectURL(
       new Blob([JSON.stringify(state, null, 2)], { type: "application/json" }),
     ),
@@ -419,14 +374,16 @@ $("#import").onchange = async (e) => {
   if (!f) return;
   try {
     if (f.size > 5000000) throw Error();
-    const parsed = JSON.parse(await f.text());
+    const input = JSON.parse(await f.text());
+    if (!validate(input)) throw Error();
+    const parsed = migrateState(input);
     if (!validate(parsed)) throw Error();
     if (
       confirm("現在の全記録・目標をこのJSONで置き換えますか？") &&
       save(parsed)
     ) {
       storageBlocked = false;
-      clearEdit("workout");
+      trainingUI.reset();
       clearEdit("meal");
       render();
       notify("JSONを読み込みました。");
@@ -447,20 +404,66 @@ $("#reset").onclick = () => {
     save(initial())
   ) {
     storageBlocked = false;
-    clearEdit("workout");
+    trainingUI.reset();
     clearEdit("meal");
     render();
-    notify("全データを削除しました。");
+    try {
+      localStorage.removeItem(storageKeys.legacy);
+      localStorage.removeItem(storageKeys.backup);
+      $("#legacy-export").hidden = true;
+      notify("全データを削除しました。");
+    } catch {
+      notify(
+        "現行データは削除しましたが、移行前データの削除に失敗しました。ブラウザの保存設定を確認してください。",
+      );
+    }
+  }
+};
+$("#legacy-export").onclick = () => {
+  try {
+    const raw =
+      localStorage.getItem(storageKeys.backup) ||
+      localStorage.getItem(storageKeys.legacy);
+    if (!raw) return;
+    const url = URL.createObjectURL(
+      new Blob([raw], { type: "application/json" }),
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "kizo-before-set-migration.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch {
+    notify("移行前データを読み出せませんでした。");
   }
 };
 function nav() {
+  document.body.classList.toggle(
+    "training-mode",
+    ["#training", "#timer-panel"].includes(location.hash),
+  );
   document.querySelectorAll("nav a").forEach((a) => {
-    if (a.hash === (location.hash || "#dashboard"))
+    if (
+      a.hash ===
+      (location.hash === "#timer-panel"
+        ? "#training"
+        : location.hash || "#dashboard")
+    )
       a.setAttribute("aria-current", "location");
     else a.removeAttribute("aria-current");
   });
 }
 window.addEventListener("hashchange", nav);
+trainingUI = initTraining({
+  getState: () => state,
+  commit,
+  renderAll: render,
+  selectedDate: () => $("#date").value,
+  setDate: (date) => {
+    $("#date").value = date;
+    render();
+  },
+});
 nav();
 search();
 render();
