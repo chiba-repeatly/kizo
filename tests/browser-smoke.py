@@ -1,5 +1,5 @@
 """Run after npm start: python3 tests/browser-smoke.py (requires Playwright + Chromium)."""
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 import json
 from pathlib import Path
 
@@ -39,7 +39,7 @@ with sync_playwright() as p:
     page.locator('[data-action=edit-meal]').click()
     page.locator('#meal-form [name=grams]').fill('200')
     page.locator('#meal-form button').first.click()
-    assert '260 kcal' in page.locator('#meal-list').inner_text()
+    expect(page.locator('#meal-list')).to_contain_text('260 kcal')
     page.locator('#training-options [name=pain]').check()
     assert '休止' in page.locator('#training-suggestion').inner_text()
     page.locator('#meal-options [name=minutes]').select_option('5')
@@ -53,14 +53,15 @@ with sync_playwright() as p:
     assert 'まだありません' in page.locator('#meal-list').inner_text()
     assert 'まだありません' in page.locator('#workout-list').inner_text()
     page.locator('#import').set_input_files({'name':'backup.json','mimeType':'application/json','buffer':backup.encode()})
-    assert '260 kcal' in page.locator('#meal-list').inner_text()
+    expect(page.locator('#meal-list')).to_contain_text('260 kcal')
     page.locator('#import').set_input_files({'name':'bad.json','mimeType':'application/json','buffer':b'{"version":999}'})
-    assert 'JSONを読み込めません' in page.locator('#notice').inner_text()
-    assert '260 kcal' in page.locator('#meal-list').inner_text()
+    expect(page.locator('#notice')).to_contain_text('JSONを読み込めません')
+    expect(page.locator('#meal-list')).to_contain_text('260 kcal')
     # Imported names must render as text, never markup.
     malicious=json.loads(backup)
     malicious['meals'][0]['name']='<img src=x onerror=alert(1)>'
     page.locator('#import').set_input_files({'name':'safe.json','mimeType':'application/json','buffer':json.dumps(malicious).encode()})
+    expect(page.locator('#meal-list')).to_contain_text('<img src=x onerror=alert(1)>')
     assert page.locator('#meal-list img').count()==0
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     page.screenshot(path='/tmp/kizo-mobile.png',full_page=True)

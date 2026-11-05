@@ -1,10 +1,10 @@
 :root {
   color-scheme: dark;
   --bg: #101715;
-  --panel: #18231e;
-  --line: #314339;
-  --muted: #a7b9ae;
-  --mint: #9cf4be;
+  --panel: #1c2722;
+  --line: #344039;
+  --muted: #b2bbb0;
+  --mint: #c1dcae;
 }
 * {
   box-sizing: border-box;
@@ -108,17 +108,18 @@ section {
 }
 article {
   background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  border: 1px solid #ffffff0b;
+  border-radius: 22px;
   padding: 24px;
   margin-bottom: 16px;
   min-width: 0;
 }
 .metric strong {
   display: block;
-  font-size: 30px;
-  color: var(--mint);
-  font-weight: 600;
+  font-size: 36px;
+  color: #f2efe5;
+  font-weight: 500;
+  letter-spacing: -1px;
 }
 .metric p {
   font-size: 13px;
@@ -156,7 +157,7 @@ button {
   background: var(--mint);
   color: #102418;
   border: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 10px 15px;
   min-height: 44px;
   cursor: pointer;
@@ -286,3 +287,97 @@ footer {
   color: #ffe09d;
   background: #263325;
 }
+
+/* A quieter, editorial rhythm for everyday training. */
+body { background: radial-gradient(ellipse at 75% 0%, #26332a 0, transparent 35rem), var(--bg); }
+header { max-width: 1320px; margin: auto; padding: 24px 4%; border-color: #ffffff0c; }
+.brand { color: #e9eddf; font-size: 30px; letter-spacing: 5px; }
+.brand span { color: #aeb9a7; font-size: 8px; letter-spacing: 2.4px; }
+nav a { font-size: 14px; border-radius: 24px; }
+nav a[aria-current] { background: #d1dfbd; color: #253425; }
+main { max-width: 1220px; padding-top: 12px; }
+.heading { position: relative; padding: 48px 0 44px; align-items: center; }
+h1 { color: #f0eee4; font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif CJK JP', serif; font-size: clamp(34px, 4.3vw, 58px); line-height: 1.55; letter-spacing: .03em; font-weight: 500; margin: 18px 0 22px; }
+h1 em { font-style: normal; color: #cadbb8; }
+.eyebrow { color: #b9c7ae; font-size: 12px; letter-spacing: .12em; display: flex; align-items: center; gap: 9px; }
+.eyebrow span { width: 7px; height: 7px; background: #c1dcae; border-radius: 50%; }
+.intro { line-height: 1.9; font-size: 14px; color: #bac2b7; margin: 0 0 26px; }
+.hero-actions { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
+.primary-link { background: #cdddba; color: #223124; text-decoration: none; border-radius: 30px; padding: 13px 21px; font-size: 14px; font-weight: 600; }
+.primary-link span { margin-left: 18px; }
+.text-link { font-size: 14px; color: #d2d8c9; text-underline-offset: 6px; }
+.text-link span { margin-left: 10px; }
+.date-picker { width: 260px; border-left: 1px solid #53604a; padding: 20px 0 20px 32px; font-size: 13px; color: #c8cfbe; }
+.date-picker > span { display: block; letter-spacing: .2em; font-size: 10px; color: #a7b99a; margin-bottom: 17px; }
+.date-picker input { background: transparent; border-color: #56614d; border-radius: 12px; margin-bottom: 12px; }
+.date-picker small { font-size: 11px; color: #a7b29e; }
+#notice:empty { display: none; }
+section { margin-top: 30px; margin-bottom: 72px; }
+h2 { font-size: 23px; font-weight: 550; letter-spacing: .04em; display: flex; gap: 16px; align-items: baseline; }
+h2 small { font-size: 9px; color: #a5b09c; letter-spacing: .18em; }
+h3 { font-weight: 550; }
+#metrics { gap: 12px; }
+.metric { padding: 23px 25px 18px; }
+.metric-label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #c0c9b8; }
+.metric-label i { font-style: normal; font-size: 11px; border: 1px solid #53604b; width: 23px; height: 23px; border-radius: 50%; display: inline-grid; place-items: center; }
+.metric strong { margin: 16px 0 12px; font-variant-numeric: tabular-nums; }
+.metric strong small { font-size: 12px; letter-spacing: 0; }
+.metric p { font-size: 11px; }
+.metric-kcal { background: #e2e5d0; color: #263727; }
+.metric-kcal .metric-label, .metric-kcal strong, .metric-kcal strong small, .metric-kcal p { color: #324331; }
+.metric-kcal .metric-label i { border-color: #a8b59b; }
+progress { height: 5px; border: 0; border-radius: 10px; overflow: hidden; background: #43503f; }
+progress::-webkit-progress-bar { background: #43503f; border-radius: 10px; }
+progress::-webkit-progress-value { background: #c1dcae; border-radius: 10px; }
+.metric-kcal progress::-webkit-progress-bar { background: #bcc5ac; }
+.metric-kcal progress::-webkit-progress-value { background: #4e6c45; }
+.metric-f progress::-webkit-progress-value { background: #e1bc8a; }
+.metric-c progress::-webkit-progress-value { background: #a5bbc8; }
+#dashboard > .two { grid-template-columns: 1.15fr 1fr; gap: 12px; }
+#dashboard > .two > article { padding: 27px 30px; }
+#energy { display: flex; align-items: center; gap: 32px; padding: 13px 0 18px; }
+.balance-ring { width: 132px; height: 132px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; }
+.balance-ring > span { width: 108px; height: 108px; background: var(--panel); border-radius: 50%; display: grid; place-content: center; text-align: center; }
+.balance-ring b { font-size: 23px; font-weight: 500; letter-spacing: .12em; }
+.balance-ring small { font-size: 9px; display: block; }
+.balance-legend { flex: 1; }
+.balance-legend p { display: flex; align-items: center; font-size: 12px; gap: 7px; }
+.balance-legend strong { margin-left: auto; font-size: 14px; font-weight: 500; }
+.macro-dot { width: 6px; height: 6px; border-radius: 50%; background: #b7d6a7; }
+.dot-f { background: #e1bc8a; }.dot-c { background: #a5bbc8; }
+#dashboard .muted { font-size: 11px; line-height: 1.8; color: #a9b3a2; }
+#latest { padding: 12px 0; }
+#latest > p:first-child { color: #b6c3a7; font-size: 12px; }
+#latest h3 { font-size: 27px; margin: 25px 0 8px; font-weight: 500; }
+#latest p { color: #c2cbbb; }
+#training, #nutrition, #suggestions, #settings { border-top: 1px solid #ffffff12; padding-top: 32px; }
+input:not([type=checkbox]), select { background-color: #142019; border-color: #475442; }
+button { transition: background-color .15s, transform .15s; }
+button:active { transform: translateY(1px); }
+@media(max-width:700px) {
+  header { padding: 20px 20px 12px; gap: 20px; }
+  nav { width: 100%; justify-content: space-between; }
+  nav a { font-size: 12px; padding: 8px 10px; }
+  main { padding: 0 18px 24px; }
+  .heading { padding: 34px 2px 28px; gap: 30px; }
+  h1 { font-size: 36px; line-height: 1.6; }
+  .eyebrow { font-size: 11px; }
+  .hero-actions { gap: 18px; }
+  .primary-link { font-size: 12px; padding: 13px 16px; }
+  .text-link { font-size: 12px; }
+  .date-picker { width: 100%; padding: 0; border: 0; margin: 0; }
+  .date-picker > span, .date-picker > small { display: none; }
+  .date-picker input { margin: 6px 0 0; }
+  h2 { font-size: 20px; gap: 10px; }
+  h2 small { font-size: 8px; letter-spacing: .1em; }
+  .metric { padding: 18px; border-radius: 18px; }
+  .metric-label { font-size: 11px; gap: 5px; }
+  .metric strong { font-size: 30px; margin: 12px 0; }
+  .metric p { font-size: 10px; }
+  #dashboard > .two { grid-template-columns: 1fr; }
+  #dashboard > .two > article { padding: 24px; }
+  #energy { gap: 24px; }
+  .balance-ring { width: 122px; height: 122px; }
+  .balance-ring > span { width: 100px; height: 100px; }
+}
+@media(prefers-reduced-motion:reduce) { button { transition: none; } }
