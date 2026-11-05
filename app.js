@@ -11,6 +11,8 @@ import {
   foods,
   mealSuggestions,
   workoutSuggestion,
+  weightComparison,
+  trainingAdventure,
 } from "./core.js";
 const $ = (s) => document.querySelector(s),
   key = "kizo.v1";
@@ -87,9 +89,22 @@ function render() {
         `<article class="metric metric-${k}"><span class="metric-label"><i aria-hidden="true">${k === "kcal" ? "◎" : k.toUpperCase()}</i>${label}</span><strong>${round(t[k])}<small> ${k === "kcal" ? "kcal" : "g"}</small></strong><progress aria-label="${label}の目標達成" max="${g[k]}" value="${Math.min(t[k], g[k])}"></progress><p>目標 ${g[k]} · ${t[k] > g[k] ? "超過" : "残り"} ${round(Math.abs(g[k] - t[k]))}</p></article>`,
     )
     .join("");
+  const adventure = trainingAdventure(state.workouts, date);
+  const comparison = adventure.comparison;
+  const ratioText = (c) => `${c.name} 約${c.count}${c.unit}分`;
+  $("#adventure").innerHTML =
+    `<div class="volume-story"><span class="story-emoji" aria-hidden="true">${comparison?.emoji || "🌱"}</span><div><p class="story-caption">この日の記録上の総重量 · ${round(adventure.volume).toLocaleString("ja-JP")} kg</p><p class="story-title">${comparison ? ratioText(comparison) : "小さな一歩も、立派な記録。"}</p><p class="story-note">${comparison ? `目安：${comparison.name} ${comparison.kg.toLocaleString("ja-JP")}kg。積み重ねると、こんな重さに。` : "自重トレーニングも記録日数にカウント。"}</p></div></div><div class="level-story"><p class="story-caption">継続レベル · 記録した日 ${adventure.days}日</p><p class="story-title"><span aria-hidden="true">${adventure.level.emoji}</span> ${adventure.level.name}</p><progress max="100" value="${adventure.progress}" aria-label="次の称号への進捗"></progress><p class="story-note">${adventure.next ? `次は「${adventure.next.name}」。あと${adventure.next.days - adventure.days}日分の記録。` : "すべての称号を獲得！これからも自分のペースで。"}</p></div>`;
   const ratios = energy(t);
   const hasEnergy = t.p * 4 + t.f * 9 + t.c * 4 > 0;
-  $("#energy").innerHTML = `<div class="balance-ring" aria-hidden="true" style="background:${hasEnergy ? `conic-gradient(#b7d6a7 0% ${ratios.p}%, #e1bc8a ${ratios.p}% ${ratios.p + ratios.f}%, #a5bbc8 ${ratios.p + ratios.f}% 100%)` : "#38443d"}"><span><b>PFC</b><small>${hasEnergy ? "記録のバランス" : "記録から、はじめよう"}</small></span></div><div class="balance-legend">${Object.entries(ratios).map(([k,v])=>`<p><span class="macro-dot dot-${k}" aria-hidden="true"></span>${{p:"たんぱく質",f:"脂質",c:"炭水化物"}[k]} <strong>${round(v)}%</strong></p>`).join("")}</div>`;
+  $("#energy").innerHTML =
+    `<div class="balance-ring" aria-hidden="true" style="background:${hasEnergy ? `conic-gradient(#b7d6a7 0% ${ratios.p}%, #e1bc8a ${ratios.p}% ${ratios.p + ratios.f}%, #a5bbc8 ${ratios.p + ratios.f}% 100%)` : "#38443d"}"><span><b>PFC</b><small>${hasEnergy ? "記録のバランス" : "記録から、はじめよう"}</small></span></div><div class="balance-legend">${Object.entries(
+      ratios,
+    )
+      .map(
+        ([k, v]) =>
+          `<p><span class="macro-dot dot-${k}" aria-hidden="true"></span>${{ p: "たんぱく質", f: "脂質", c: "炭水化物" }[k]} <strong>${round(v)}%</strong></p>`,
+      )
+      .join("")}</div>`;
   const latest = [...state.workouts]
     .filter((w) => w.date <= date)
     .sort((a, b) => b.date.localeCompare(a.date))[0];
@@ -101,7 +116,7 @@ function render() {
       .filter((w) => w.date === date)
       .map(
         (w) =>
-          `<div class="row"><strong>${escape(w.name)} · ${escape(w.group)}</strong>${w.weight} kg × ${w.reps}回 × ${w.sets}セット <div>${buttons("workout", w.id)}</div></div>`,
+          `<div class="row"><strong>${escape(w.name)} · ${escape(w.group)}</strong>${w.weight} kg × ${w.reps}回 × ${w.sets}セット <p class="weight-fun">${weightComparison(w.weight) ? `${weightComparison(w.weight).emoji} 1回の入力重量は ${ratioText(weightComparison(w.weight))}（目安）` : "🌱 自重トレーニング。自分の体で、コツコツ。"}</p><div>${buttons("workout", w.id)}</div></div>`,
       )
       .join("") ||
     '<p class="muted">この日のトレーニングはまだありません。</p>';

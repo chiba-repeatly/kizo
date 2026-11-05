@@ -238,3 +238,49 @@ export function workoutSuggestion(
   };
   return `${group}：${exercises[group]}。${experience === "初心者" ? "1〜2" : "2〜3"}セット × ${goal === "健康維持" ? "10〜15" : goal === "筋力向上" && equipment === "ジム" ? "5〜8" : "8〜12"}回を目安に、余力を残す負荷で。直近2日の同部位記録を避けた候補です。フォームを優先し、痛みが出たら中止してください。`;
 }
+
+// Playful display references, not biological averages or strength standards.
+export const weightReferences = [
+  { kg: 1, name: "1Lの水", unit: "本", emoji: "💧" },
+  { kg: 4, name: "ネコ", unit: "匹", emoji: "🐈" },
+  { kg: 20, name: "イヌ", unit: "匹", emoji: "🐕" },
+  { kg: 100, name: "パンダ", unit: "頭", emoji: "🐼" },
+  { kg: 1000, name: "小型車", unit: "台", emoji: "🚗" },
+  { kg: 5000, name: "ゾウ", unit: "頭", emoji: "🐘" },
+];
+export function weightComparison(kg) {
+  if (!Number.isFinite(kg) || kg <= 0) return null;
+  const ref =
+    [...weightReferences].reverse().find((r) => kg >= r.kg) ||
+    weightReferences[0];
+  return { ...ref, count: Math.round((kg / ref.kg) * 10) / 10 || 0.1 };
+}
+export function trainingAdventure(workouts, date) {
+  const recorded = workouts.filter((w) => w.date <= date);
+  const days = new Set(recorded.map((w) => w.date)).size;
+  const levels = [
+    { days: 0, name: "冒険のはじまり", emoji: "🌱" },
+    { days: 1, name: "はじめの一歩", emoji: "👟" },
+    { days: 3, name: "エンジン始動", emoji: "🔥" },
+    { days: 7, name: "コツコツ戦士", emoji: "⚔️" },
+    { days: 14, name: "パワーヒーロー", emoji: "🦸" },
+    { days: 30, name: "ハルク級", emoji: "💚" },
+    { days: 60, name: "継続のレジェンド", emoji: "🏆" },
+  ];
+  const index = levels.findLastIndex((level) => days >= level.days);
+  const level = levels[index],
+    next = levels[index + 1] || null;
+  const volume = workouts
+    .filter((w) => w.date === date)
+    .reduce((sum, w) => sum + w.weight * w.reps * w.sets, 0);
+  return {
+    days,
+    level,
+    next,
+    progress: next
+      ? ((days - level.days) / (next.days - level.days)) * 100
+      : 100,
+    volume,
+    comparison: weightComparison(volume),
+  };
+}

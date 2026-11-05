@@ -93,19 +93,61 @@ test("pain and fatigue override training; recent groups rest", () => {
   );
 });
 
-test('today follows the local calendar across UTC midnight', () => {
+test("today follows the local calendar across UTC midnight", () => {
   const RealDate = globalThis.Date;
   const originalTZ = process.env.TZ;
   try {
-    process.env.TZ = 'Asia/Tokyo';
+    process.env.TZ = "Asia/Tokyo";
     globalThis.Date = class extends RealDate {
-      constructor(...args) { super(...(args.length ? args : ['2026-11-01T16:00:00Z'])); }
+      constructor(...args) {
+        super(...(args.length ? args : ["2026-11-01T16:00:00Z"]));
+      }
     };
-    assert.equal(today(), '2026-11-02');
-    process.env.TZ = 'America/Los_Angeles';
-    assert.equal(today(), '2026-11-01');
+    assert.equal(today(), "2026-11-02");
+    process.env.TZ = "America/Los_Angeles";
+    assert.equal(today(), "2026-11-01");
   } finally {
     globalThis.Date = RealDate;
-    if (originalTZ === undefined) delete process.env.TZ; else process.env.TZ = originalTZ;
+    if (originalTZ === undefined) delete process.env.TZ;
+    else process.env.TZ = originalTZ;
   }
+});
+
+test("weight metaphors use explicit reference weights and handle zero", async () => {
+  const { weightComparison } = await import("../core.js");
+  assert.equal(weightComparison(0), null);
+  assert.equal(weightComparison(-1), null);
+  assert.equal(weightComparison(NaN), null);
+  assert.deepEqual(
+    [weightComparison(60).name, weightComparison(60).count],
+    ["イヌ", 3],
+  );
+  assert.equal(weightComparison(1800).count, 1.8);
+  assert.equal(weightComparison(5000).name, "ゾウ");
+});
+test("adventure counts unique logged days, isolates volume, excludes future dates", async () => {
+  const { trainingAdventure } = await import("../core.js");
+  const workouts = [
+    { date: "2026-11-01", weight: 60, reps: 10, sets: 3 },
+    { date: "2026-11-01", weight: 0, reps: 10, sets: 3 },
+    { date: "2026-11-03", weight: 100, reps: 10, sets: 3 },
+  ];
+  const a = trainingAdventure(workouts, "2026-11-01");
+  assert.equal(a.volume, 1800);
+  assert.equal(a.days, 1);
+  assert.equal(a.level.name, "はじめの一歩");
+  assert.equal(a.next.days, 3);
+  assert.equal(trainingAdventure([], today()).level.name, "冒険のはじまり");
+  assert.equal(trainingAdventure(workouts, "2026-11-02").volume, 0);
+  const days = Array.from({ length: 30 }, (_, i) => ({
+    date: `2026-10-${String(i + 1).padStart(2, "0")}`,
+    weight: 0,
+    reps: 1,
+    sets: 1,
+  }));
+  assert.equal(trainingAdventure(days, "2026-11-01").level.name, "ハルク級");
+  assert.equal(
+    trainingAdventure(days.slice(1), "2026-11-01").level.name,
+    "パワーヒーロー",
+  );
 });
