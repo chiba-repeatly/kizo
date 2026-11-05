@@ -58,7 +58,7 @@ with sync_playwright() as p:
     page.locator('[data-action=delete-workout]').click()
     assert 'まだありません' in page.locator('#meal-list').inner_text()
     assert 'まだありません' in page.locator('#workout-list').inner_text()
-    expect(page.locator('#adventure')).to_contain_text('冒険のはじまり')
+    expect(page.locator('#adventure')).to_contain_text('思い出の保管係')
     page.locator('#import').set_input_files({'name':'backup.json','mimeType':'application/json','buffer':backup.encode()})
     expect(page.locator('#meal-list')).to_contain_text('260 kcal')
     page.locator('#import').set_input_files({'name':'bad.json','mimeType':'application/json','buffer':b'{"version":999}'})

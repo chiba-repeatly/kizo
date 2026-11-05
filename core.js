@@ -51,6 +51,18 @@ export function validate(s) {
       !["kcal", "p", "f", "c"].every((k) => num(s.goals?.[k]) && s.goals[k] > 0)
     )
       return false;
+    if (
+      s.selectedTitle !== undefined &&
+      (typeof s.selectedTitle !== "string" || s.selectedTitle.length > 100)
+    )
+      return false;
+    if (
+      s.exportCount !== undefined &&
+      (!Number.isInteger(s.exportCount) ||
+        s.exportCount < 0 ||
+        s.exportCount > 100000)
+    )
+      return false;
     const ids = new Set();
     for (const [items, kind] of [
       [s.workouts, "w"],

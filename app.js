@@ -1,3 +1,4 @@
+import { collectTitles, featuredTitle, titleCategories } from "./titles.js";
 import {
   today,
   initial,
@@ -91,9 +92,11 @@ function render() {
     .join("");
   const adventure = trainingAdventure(state.workouts, date);
   const comparison = adventure.comparison;
+  const featured = featuredTitle(state, date);
   const ratioText = (c) => `${c.name} 約${c.count}${c.unit}分`;
   $("#adventure").innerHTML =
-    `<div class="volume-story"><span class="story-emoji" aria-hidden="true">${comparison?.emoji || "🌱"}</span><div><p class="story-caption">この日の記録上の総重量 · ${round(adventure.volume).toLocaleString("ja-JP")} kg</p><p class="story-title">${comparison ? ratioText(comparison) : "小さな一歩も、立派な記録。"}</p><p class="story-note">${comparison ? `目安：${comparison.name} ${comparison.kg.toLocaleString("ja-JP")}kg。積み重ねると、こんな重さに。` : "自重トレーニングも記録日数にカウント。"}</p></div></div><div class="level-story"><p class="story-caption">継続レベル · 記録した日 ${adventure.days}日</p><p class="story-title"><span aria-hidden="true">${adventure.level.emoji}</span> ${adventure.level.name}</p><progress max="100" value="${adventure.progress}" aria-label="次の称号への進捗"></progress><p class="story-note">${adventure.next ? `次は「${adventure.next.name}」。あと${adventure.next.days - adventure.days}日分の記録。` : "すべての称号を獲得！これからも自分のペースで。"}</p></div>`;
+    `<div class="volume-story"><span class="story-emoji" aria-hidden="true">${comparison?.emoji || "🌱"}</span><div><p class="story-caption">この日の記録上の総重量 · ${round(adventure.volume).toLocaleString("ja-JP")} kg</p><p class="story-title">${comparison ? ratioText(comparison) : "小さな一歩も、立派な記録。"}</p><p class="story-note">${comparison ? `目安：${comparison.name} ${comparison.kg.toLocaleString("ja-JP")}kg。積み重ねると、こんな重さに。` : "自重トレーニングも記録日数にカウント。"}</p></div></div><div class="level-story"><p class="story-caption">いまの称号 · トレーニング記録 ${adventure.days}日</p><p class="story-title"><span aria-hidden="true">${featured?.emoji || adventure.level.emoji}</span> ${escape(featured?.name || adventure.level.name)}</p><progress max="100" value="${adventure.progress}" aria-label="次の称号への進捗"></progress><p class="story-note">${adventure.next ? `基本の継続レベル：次は「${adventure.next.name}」。あと${adventure.next.days - adventure.days}日分の記録。` : "基本の継続レベルを達成！図鑑には、さらに先の称号も。"}</p></div>`;
+  renderTitleCollection();
   const ratios = energy(t);
   const hasEnergy = t.p * 4 + t.f * 9 + t.c * 4 > 0;
   $("#energy").innerHTML =
@@ -139,6 +142,43 @@ function render() {
   renderSuggestions();
   fill($("#goal-form"), g);
 }
+function renderTitleCollection() {
+  const all = collectTitles(state, $("#date").value),
+    selected = featuredTitle(state, $("#date").value);
+  const category = $("#title-category").value,
+    mode = $("#title-status").value;
+  const filtered = all.filter(
+    (t) =>
+      (!category || t.category === category) &&
+      (mode !== "earned" || t.unlocked) &&
+      (mode !== "locked" || !t.unlocked),
+  );
+  $("#title-count").textContent =
+    `${all.filter((t) => t.unlocked).length} / ${all.length} 獲得`;
+  $("#title-grid").innerHTML =
+    filtered
+      .map(
+        (t) =>
+          `<article class="title-tile ${t.unlocked ? "earned" : "locked"}"><div class="title-tile-top"><span aria-hidden="true">${t.emoji}</span><small>${t.category} · ${t.unlocked ? "獲得済み" : "未獲得"}</small></div><h4>${escape(t.name)}</h4><p>${escape(t.condition)}</p><div class="title-progress"><progress aria-label="${escape(t.name)}の獲得進捗" max="${t.target}" value="${Math.min(t.value, t.target)}"></progress><small>${t.unlocked ? "達成" : `${t.value} / ${t.target}`}</small></div><button type="button" class="secondary" data-title="${t.id}" ${!t.unlocked || selected?.id === t.id ? "disabled" : ""}>${selected?.id === t.id ? "表示中" : t.unlocked ? "この称号を飾る" : "まだ未獲得"}</button></article>`,
+      )
+      .join("") || '<p class="muted">この条件の称号はありません。</p>';
+}
+$("#title-category").innerHTML =
+  '<option value="">すべてのジャンル</option>' +
+  titleCategories.map((c) => `<option>${c}</option>`).join("");
+$("#title-category").onchange = renderTitleCollection;
+$("#title-status").onchange = renderTitleCollection;
+$("#title-grid").addEventListener("click", (e) => {
+  const button = e.target.closest("[data-title]");
+  if (!button) return;
+  const title = collectTitles(state, $("#date").value).find(
+    (t) => t.id === button.dataset.title,
+  );
+  if (title?.unlocked && commit({ ...state, selectedTitle: title.id })) {
+    render();
+    notify(`「${title.name}」を飾りました。`);
+  }
+});
 function buttons(kind, id) {
   return `<button type="button" class="secondary" data-action="edit-${kind}" data-id="${escape(id)}">編集</button><button type="button" class="secondary" data-action="delete-${kind}" data-id="${escape(id)}">削除</button>`;
 }
@@ -359,6 +399,12 @@ $("#export").onclick = () => {
     notify("破損データ保護中のため書き出しを停止しています。");
     return;
   }
+  const next = {
+    ...state,
+    exportCount: Math.min(100000, (state.exportCount || 0) + 1),
+  };
+  if (!commit(next)) return;
+  render();
   const url = URL.createObjectURL(
       new Blob([JSON.stringify(state, null, 2)], { type: "application/json" }),
     ),

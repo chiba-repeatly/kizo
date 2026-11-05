@@ -120,6 +120,26 @@
             <span class="play-label">遊びのバッジ</span>
           </div>
           <div id="adventure" class="grid two"></div>
+          <details class="title-collection">
+            <summary>称号図鑑をひらく <span id="title-count"></span></summary>
+            <p class="muted">
+              好きな獲得済み称号を選んで飾れます。休む日も、軽い運動の日も、あなたのペースで。
+            </p>
+            <div class="grid two title-filters">
+              <label>ジャンル<select id="title-category"></select></label
+              ><label
+                >獲得状況<select id="title-status">
+                  <option value="all">すべて</option>
+                  <option value="earned">獲得済み</option>
+                  <option value="locked">未獲得</option>
+                </select></label
+              >
+            </div>
+            <div id="title-grid" class="title-grid" tabindex="0" role="region" aria-label="称号の一覧"></div>
+            <p class="muted">
+              称号は記録内容から再計算します。編集・削除・JSON置換で条件を満たさなくなると未獲得に戻り、選択中なら自動で別の称号を表示します。
+            </p>
+          </details>
           <details class="adventure-rules">
             <summary>たとえ・称号のルール</summary>
             <p>
@@ -127,7 +147,7 @@
               セット」の合計です。同時に持ち上げた重量ではなく、自重やマシンの力学は含みません。たとえはネコ4kg・イヌ20kg・パンダ100kg・小型車1,000kg・ゾウ5,000kgなど、演出用に決めた大まかな目安です。実際の体重や車重には幅があります。
             </p>
             <p>
-              称号は記録した日数で変化します（1・3・7・14・30・60日）。同じ日に複数回記録しても1日です。連続日数や筋力の評価ではありません。休む日も大切に、あなたのペースで。表示日より後の記録は含みません。
+              称号は継続・部位・種目・自重・食事・両立・再出発・JSON書き出しの8ジャンル、115種類。獲得条件は図鑑の各称号に表示しています。基本の継続レベルは記録日数に応じて変化します（1・3・7・14・30・60日）。同じ日に複数回記録しても1日です。連続日数や筋力の評価ではありません。休む日も大切に、あなたのペースで。表示日より後の記録は含みません。
             </p>
           </details>
         </article>
